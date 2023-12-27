@@ -9,7 +9,7 @@ from torchvision.models import resnet18
 
 
 # Discard layers at the end of base network
-encoder = resnet18(pretrained=True)
+encoder = resnet18(weights='ResNet18_Weights.DEFAULT')
 base_model = nn.Sequential(
     encoder.conv1,
     encoder.bn1,
@@ -35,3 +35,5 @@ x = torch.rand(40, 3, 128, 128).cuda()
 output = model(x)
 
 triplet_loss = criterion(output, labels)
+
+print("complete")

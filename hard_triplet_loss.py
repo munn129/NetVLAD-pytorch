@@ -115,7 +115,35 @@ def _get_anchor_negative_triplet_mask(labels):
 
     return mask
 
+def _get_triplet_mask(labels):
+#    """Return a 3D mask where mask[a, p, n] is True iff the triplet (a, p, n) is valid.
+#
+#    A triplet (i, j, k) is valid if:
+#        - i, j, k are distinct
+#        - labels[i] == labels[j] and labels[i] != labels[k]
+#    """
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+    # Check that i, j and k are distinct
+    indices_equal = torch.eye(labels.size(0), dtype=torch.bool, device=labels.device)
+    indices_not_equal = ~indices_equal
+    i_not_equal_j = indices_not_equal.unsqueeze(2)
+    i_not_equal_k = indices_not_equal.unsqueeze(1)
+    j_not_equal_k = indices_not_equal.unsqueeze(0)
+
+    distinct_indices = (i_not_equal_j & i_not_equal_k) & j_not_equal_k
+
+    label_equal = labels.unsqueeze(0) == labels.unsqueeze(1)
+    i_equal_j = label_equal.unsqueeze(2)
+    i_equal_k = label_equal.unsqueeze(1)
+
+    valid_labels = ~i_equal_k & i_equal_j
+    mask = valid_labels & distinct_indices
+    
+    return mask.to(device)
+
+
+'''
 def _get_triplet_mask(labels):
     """Return a 3D mask where mask[a, p, n] is True iff the triplet (a, p, n) is valid.
 
@@ -141,3 +169,4 @@ def _get_triplet_mask(labels):
     mask = distinct_indices * valid_labels   # Combine the two masks
 
     return mask
+'''
